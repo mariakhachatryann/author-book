@@ -20,7 +20,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="pub_year" class="form-label">Publication Year</label>
-                                <input type="number" class="form-control" id="pub_year" name="pub_year" min="0" max="{{ date("Y") }}" value="{{ $book->publication_year ?? '' }}" required>
+                                <input type="number" class="form-control" id="pub_year" name="publication_year" min="0" max="{{ date("Y") }}" value="{{ $book->publication_year ?? '' }}" required>
                             </div>
                             <div class="mb-3">
                                 <label for="authors" class="form-label">Authors</label>

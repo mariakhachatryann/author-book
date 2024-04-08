@@ -5,6 +5,12 @@
             <a href="{{ route('authors.create') }}" class="btn btn-primary">Add an author</a>
         </div>
     @endauth
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
     <ul class="list-group">
         @foreach($authors as $author)
         <li class="list-group-item">

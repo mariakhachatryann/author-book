@@ -10,7 +10,7 @@ class AdminController extends Controller
 {
     public function login(Request $request)
     {
-        if (empty($_POST)) {
+        if (!$request->isMethod('post')) {
             return view('admin.login');
         }
 

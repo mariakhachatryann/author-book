@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Author;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBookRequest;
 
 class BooksController extends Controller
 {
@@ -30,31 +32,22 @@ class BooksController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'pub_year' => 'required|integer',
-            'authors' => 'required|array',
-            'img_path' => 'required',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('img_path')) {
             $image = $request->file('img_path');
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->storeAs('public/images/books', $imageName);
+            $validated['img_path'] = $imageName;
         }
 
-        $book = new Book([
-            'title' => $request->title,
-            'description' => $request->description,
-            'publication_year' => $request->pub_year,
-            'img_path' => $imageName ?? null
-        ]);
-
+        $book = new Book();
+        $book->fill($validated);
         $book->save();
-        $book->authors()->attach($request->input('authors'));
+
+        $book->authors()->attach($validated['authors']);
         return redirect()->route('books.index')->with('success', 'Book added successfully');
     }
 
@@ -80,27 +73,22 @@ class BooksController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBookRequest $request, string $id)
     {
+        $validated = $request->validated();
+
         $book = Book::find($id);
 
         if ($request->hasFile('img_path')) {
             $image = $request->file('img_path');
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->storeAs('public/images/books', $imageName);
+            $validated['img_path'] = $imageName;
         }
 
-        $book->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'publication_year' => $request->pub_year,
-            'img_path' => $imageName ?? $book->img_path,
-        ]);
-
-
-
+        $book->update($validated);
         $book->authors()->sync($request->authors);
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Book updated successfully');
     }
 
     /**
@@ -110,6 +98,6 @@ class BooksController extends Controller
     {
         $book = Book::find($id);
         $book->delete();
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Book deleted successfully');
     }
 }

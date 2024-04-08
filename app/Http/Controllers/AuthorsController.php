@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAuthorRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Http\Request;
@@ -32,27 +34,19 @@ class AuthorsController extends Controller
      * Store a newly created resource in storage.
      */
 
-    public function store(Request $request)
+    public function store(StoreAuthorRequest $request)
     {
-        $request->validate([
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'biography' => 'required|string',
-            'img_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('img_path')) {
             $image = $request->file('img_path');
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->storeAs('public/images/authors', $imageName);
+            $validated['img_path'] = $imageName;
         }
 
-        $author = new Author([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'biography' => $request->biography,
-            'img_path' => $imageName ?? null,
-        ]);
+        $author = new Author();
+        $author->fill($validated);
 
         $author->save();
         return redirect()->route('authors.index')->with('success', 'Author added successfully');
@@ -80,29 +74,22 @@ class AuthorsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBookRequest $request, string $id)
     {
-        $request->validate([
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'biography' => 'required|string'
-        ]);
+        $validated = $request->validated();
         $author = Author::find($id);
 
         if ($request->hasFile('img_path')) {
             $image = $request->file('img_path');
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->storeAs('public/images/authors', $imageName);
+            $validated['img_path'] = $imageName;
+        } else {
+            $validated['img_path'] = $author->img_path;
         }
 
-        $author->update([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'biography' => $request->biography,
-            'img_path' => $imageName ?? $author->img_path,
-        ]);
-
-        return redirect()->route('authors.index');
+        $author->update($validated);
+        return redirect()->route('authors.index')->with('success', 'Author edited successfully');
     }
 
     /**
@@ -112,6 +99,6 @@ class AuthorsController extends Controller
     {
         $author = Author::find($id);
         $author->delete();
-        return redirect()->route('authors.index');
+        return redirect()->route('authors.index')->with('success', 'Author deleted successfully');
     }
 }
